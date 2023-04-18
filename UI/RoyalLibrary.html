@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Royal Library</title>
+	
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Jquery JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" integrity="sha512-pumBsjNRGGqkPzKHndZMaAG+bir374sORyzM3uulLV14lN5LyykqNk8eEeUlUkB3U0M4FApyaHraT65ihJhDpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js" integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <header>
+        <h1>Royal Project</h1>
+      </header>
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-group">
+					<label>Search By:</label>
+					<select id="select-book-filter" class="form-control">
+						<option value="BookId">Book Id</option>
+						<option value="Title">Title</option>
+						<option value="FirstName">First Name</option>
+						<option value="LastName">Last Name</option>
+						<option value="Type">Type</option>
+						<option value="ISBN">ISBN</option>
+						<option value="Category">Category</option>
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<div class="form-group">
+					<label>Search Value:</label>
+					<input id="input-search-value" class="form-control" type="text"></input>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div style="margin-top: 10px" class="col-md-12">
+				<div class="form-group">
+					<button style="float: right" id="btn-search">Search</button>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" style="margin-top: 20px">
+				<div class="form-group">
+					<table id="library-table" class="display">
+						<thead>
+							<tr>
+								<th>Book Id</th>
+								<th>Title</th>
+								<th>First Name</th>
+								<th>Last Name</th>
+								<th>Type</th>
+								<th>ISBN</th>
+								<th>Category</th>
+							</tr>
+						</thead>
+						<tbody id="tbody-library">
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+    <footer>
+       <p style="text-align: center">Library Project 2023</p>
+    </footer>
+  </body>
+  <script>
+	var table = {};
+
+	$(document).ready(function() {
+		$("#btn-search").click(function() {
+			search();
+		});
+	});
+
+	var page = 0;
+	var length = 10;
+
+	var tmpJson = {
+    		recordsTotal: 0,
+    		recordsFiltered: 0,
+    		data: {},
+    		currentPage: 0
+	};
+
+	var columns = [
+		{ 'data': 'bookId', 'autoWidth': true },
+		{ 'data': 'title', 'autoWidth': true },
+		{ 'data': 'firstName', 'autoWidth': true },
+		{ 'data': 'lastName', 'autoWidth': true },
+		{ 'data': 'type', 'autoWidth': true },
+		{ 'data': 'isbn', 'autoWidth': true },
+		{ 'data': 'category', 'autoWidth': true }
+	];
+	
+	var table = $("#library-table").DataTable({ 
+							paging: true, 
+							pageLength: length, 
+							serverSide: true, 
+							ajax: function (data, callback, settings) {
+								if (tmpJson.data && tmpJson.data.length) {
+        								callback(tmpJson);
+								}
+    							},
+							columns: columns,
+							drawCallback: function(obj) {
+									var currentPage = info.page;
+									var currentLength = info.length;
+
+									if (currentPage !== page || currentLength !== length) {
+										if (currentPage !== page) {
+											page = currentPage;
+										}
+
+										if (currentLength !== length)
+											length = currentLength;
+										
+										search();
+									}
+							}
+	});
+
+	var info = table.page.info();
+	length = info.length;
+	page = info.page;
+
+	function search() {
+		var objSearch = {
+				bookId: 0,
+				title: '',
+				firstName: '',
+				lastName: '',
+				type: '',
+				isbn: '',
+				category: '',
+				length: length,
+				page: page
+		};
+		
+		var selectValue = $("#select-book-filter").val();
+		var valueSearch = $("#input-search-value").val();
+		
+		if (valueSearch && valueSearch !== '') {
+			switch(selectValue) {
+				case "BookId":
+					objSearch.bookId = valueSearch;
+                              break;
+				case "Title":
+					objSearch.title = valueSearch;
+                              break;
+				case "FirstName":
+					objSearch.firstName = valueSearch;
+                              break;
+				case "LastName":
+					objSearch.lastName = valueSearch;
+                              break;
+				case "Type":
+					objSearch.type = valueSearch;
+                              break;
+				case "ISBN":
+					objSearch.isbn = valueSearch;
+                              break;
+				case "Category":
+					objSearch.category = valueSearch;
+                              break;
+			}
+		}
+
+		$.ajax({
+    				type:'post',
+    				url: 'https://localhost:44389/book-search',
+    				contentType: 'application/json',
+				data: JSON.stringify(objSearch),
+				success: function(data) {
+					table.clear();
+
+					tmpJson = {};
+					if (data && data.result && data.result.length > 0) {
+						tmpJson = {
+    							recordsTotal: data.total,
+    							recordsFiltered: data.total,
+    							data: data.result,
+    							currentPage: page
+						};
+					}
+
+					table.draw();
+					info = table.page.info();
+				},
+                        error: function(response) {
+					console.log(response);
+				}
+			});
+	}
+  </script>
+</html>
